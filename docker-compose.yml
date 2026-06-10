@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: badrgo_db
+    restart: always
+    environment:
+      POSTGRES_USER: badrgo_user
+      POSTGRES_PASSWORD: Admin@2026
+      POSTGRES_DB: badrgowallet
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - badrgo_network
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: badrgo_backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=badrgo_user
+      - DB_PASSWORD=Admin@2026
+      - DB_NAME=badrgowallet
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    networks:
+      - badrgo_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: badrgo_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - badrgo_network
+
+networks:
+  badrgo_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
