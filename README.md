@@ -66,13 +66,22 @@ npm install
 npm run dev
 ```
 
-### 3. Remarks & Known Limitations
+### 3. Production Deployment (Docker)
 
-- **No Docker**: I wanted to include Docker, but because of some hardware constraints on my local machine and the tight 24-hour deadline, I skipped it. You can just run it normally using Node and Postgres.
+To run the entire isolated stack (Postgres Database, NestJS Backend, Nginx React Frontend) automatically via containers, run:
+```bash
+docker-compose up --build -d
+```
+- The Frontend UI will be accessible on `http://localhost:80`
+- The Backend API will be accessible on `http://localhost:3000`
+- The Postgres Database will run on `localhost:5432`
+
+### 4. Remarks & Known Limitations
+
 - **No Redis**: Normally I would use Redis for handling the idempotency cache, but I wanted to keep the local setup simple for the development phase. So instead, I handled the duplicate request checking directly inside PostgreSQL using a custom table.
 - **Mobile / LAN Testing**: To ensure the frontend is truly responsive and the APIs communicate correctly over a network, I hosted the backend securely on my local IP (`0.0.0.0`), configured **CORS** to accept traffic from my local network subnet, and exposed the Vite frontend (`--host`) to test the entire application end-to-end directly from my physical mobile device.
 
-### 4. Future Scope
+### 5. Future Scope
 
 If I had more time, here are a few things I would add to help the app scale better:
 1. **Use Redis for Idempotency**: Checking the database for every single request adds a lot of load. I'd move the idempotency check to Redis so we can block duplicate requests instantly in memory.
