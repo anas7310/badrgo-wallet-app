@@ -69,7 +69,7 @@ npm run dev
 ### 3. Remarks & Known Limitations
 
 - **No Docker**: I wanted to include Docker, but because of some hardware constraints on my local machine and the tight 24-hour deadline, I skipped it. You can just run it normally using Node and Postgres.
-- **No Redis**: Normally I would use Redis for handling the idempotency cache, but I wanted to keep the local setup simple for the reviewer. So instead, I handled the duplicate request checking directly inside PostgreSQL using a custom table.
+- **No Redis**: Normally I would use Redis for handling the idempotency cache, but I wanted to keep the local setup simple for the development phase. So instead, I handled the duplicate request checking directly inside PostgreSQL using a custom table.
 
 ### 4. Future Scope
 
