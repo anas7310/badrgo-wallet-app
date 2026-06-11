@@ -21,16 +21,23 @@ The system follows a classic decoupled Client-Server architecture designed for s
 - PostgreSQL (v15+)
 - Docker (optional, for production deployment)
 
-### 1. Environment Variables
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/anas7310/badrgo-wallet-app.git
+cd badrgo-wallet-app
+```
+
+### 2. Environment Variables
 
 **Backend (`backend/.env`)**
 ```env
 PORT=3000
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=badrgo_user
-DB_PASSWORD=Admin@2026
-DB_NAME=badrgowallet
+DB_USER=write your db user here
+DB_PASSWORD=write your db password here
+DB_NAME=write your db name here
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 ```
@@ -40,7 +47,7 @@ FRONTEND_URL=http://localhost:5173
 VITE_API_URL=http://localhost:3000
 ```
 
-### 2. Local Development Server
+### 3. Local Development Server
 
 **Database Setup**:
 Ensure your PostgreSQL instance is running. Create the database and run the `backend/src/database/schema.sql` file to provision the tables and indexes.
@@ -59,12 +66,17 @@ npm install
 npm run dev
 ```
 
-### 3. Production Deployment (Docker)
-To spin up the entire isolated stack (Postgres, NestJS API, Nginx React App) in production mode:
-```bash
-docker-compose up --build -d
-```
-The frontend will be exposed on port `80`, and the backend API on port `3000`.
+### 3. Remarks & Known Limitations
+
+- **No Docker**: I wanted to include Docker, but because of some hardware constraints on my local machine and the tight 24-hour deadline, I skipped it. You can just run it normally using Node and Postgres.
+- **No Redis**: Normally I would use Redis for handling the idempotency cache, but I wanted to keep the local setup simple for the reviewer. So instead, I handled the duplicate request checking directly inside PostgreSQL using a custom table.
+
+### 4. Future Scope
+
+If I had more time, here are a few things I would add to help the app scale better:
+1. **Use Redis for Idempotency**: Checking the database for every single request adds a lot of load. I'd move the idempotency check to Redis so we can block duplicate requests instantly in memory.
+2. **Database Partitioning**: Since the transactions table will just keep growing forever, querying it will eventually get slow. I would set up Postgres to partition the table by month so the database doesn't have to scan millions of old rows.
+3. **Read Replicas**: I'd split the database traffic. All the heavy reads (like fetching the daily reports) would go to a read-replica database, keeping the main master database totally free to just handle fast debit and credit locks.
 
 ---
 
