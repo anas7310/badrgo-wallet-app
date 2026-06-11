@@ -37,10 +37,24 @@ export class WalletsController {
     return this.walletsService.create(createWalletDto);
   }
 
-    @Get('stats')
+  @Get()
+  @ApiOperation({ summary: 'Get all wallets' })
+  @ApiOkResponse({ type: [WalletResponseDto] })
+  findAll() {
+    return this.walletsService.findAll();
+  }
+
+  @Get('stats')
   @ApiOperation({ summary: 'Get aggregate stats across all wallets (used by dashboard)' })
   stats() {
     return this.walletsService.getStats();
+  }
+
+  @Get('all/transactions')
+  @ApiOperation({ summary: 'Get all transactions across all wallets (used by dashboard)' })
+  @ApiOkResponse({ type: [TransactionResponseDto] })
+  allTransactions() {
+    return this.walletsService.getAllTransactions();
   }
 
   @Get(':id')

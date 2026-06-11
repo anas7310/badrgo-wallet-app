@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   OneToMany,
   Index,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { WalletStatus } from '../../../common/enums/wallet-status.enum';
@@ -24,6 +25,7 @@ export class Wallet {
   userId: string;
 
   @ManyToOne(() => User, (user) => user.wallets)
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column({ default: 'USD' })

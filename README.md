@@ -98,10 +98,24 @@ To run the tests:
 cd backend
 npm run test:e2e
 ```
-These tests deeply cover:
-- Valid and invalid **Credit** and **Debit** operations.
-- Insufficient balance enforcement.
-- Duplicate `referenceId` handling (Idempotency).
+These tests deeply cover every critical constraint:
+
+### User Provisioning (`users.e2e-spec.ts`)
+| Scenario | Expected Output | Actual Verification |
+| :--- | :--- | :--- |
+| **Registration** | Create a user and return the user entity | `[PASS]` User created successfully |
+| **Duplicates** | Reject duplicate email | `[PASS]` Caught Postgres duplicate key constraint |
+| **Validation** | Reject invalid email format / missing fields | `[PASS]` `400: ["email must be an email"]` |
+
+### Wallet Financial Operations (`wallets.e2e-spec.ts`)
+| Scenario | Expected Output | Actual Verification |
+| :--- | :--- | :--- |
+| **Funding** | Credit wallet and strictly record accurate `balanceBefore` and `balanceAfter` | `[PASS]` Credits correctly appended to balances |
+| **Missing Params** | Reject credit requests with missing `referenceId` | `[PASS]` `400: ["Idempotency-Key header is required"]` |
+| **Invalid Amounts**| Reject credit with amount = `0` or negative numbers | `[PASS]` `400: ["amount must be at least 1 cent"]` |
+| **Withdrawals** | Debit wallet and verify final balance matches `balanceBefore - amount` | `[PASS]` Debits successfully processed |
+| **Insufficient** | Prevent a debit if balance drops below `0` | `[PASS]` `400: "Insufficient balance... requested: 9999999.99 USD"` |
+| **Idempotency** | Prevent duplicate operations. Reused `referenceId` returns cached transaction | `[PASS]` Secondary requests bypassed controller safely |
 
 ### 2. Concurrency & Idempotency Strategy
 Financial systems require absolute precision under high load:

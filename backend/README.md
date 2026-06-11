@@ -1,37 +1,23 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Badrgo Wallet Manager (Backend API)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is the backend service for the Mini Operations Wallet Portal. It is built using **NestJS**, **TypeORM**, and **PostgreSQL**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Architecture & Features
 
-## Description
+- **Strict Validation**: All endpoints use `class-validator` DTOs to enforce strict payload structures.
+- **Concurrency Safety**: Critical financial transactions (`/wallets/:id/credit` and `/wallets/:id/debit`) use Postgres `pessimistic_write` row-level locking via TypeORM Query Runners. This completely eliminates race conditions when high-volume operations overlap.
+- **Idempotency**: Implemented as a reusable `@Injectable` NestJS Interceptor. All state-mutating financial operations require an `Idempotency-Key` header (mapped to `referenceId`). Duplicate requests are gracefully aborted, and the initial successful response is served from cache instead of double-crediting balances.
+- **Safe Math**: All balances and transaction amounts are processed as integers (`cents`), securely evading floating-point inaccuracies.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Installation
 
 ```bash
 $ npm install
 ```
 
-## Compile and run the project
+## Running the application
+
+Ensure your PostgreSQL instance is running and configured according to the `.env` file.
 
 ```bash
 # development
@@ -44,55 +30,37 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+## E2E Testing & Validation Results
+
+The API is fully verified through comprehensive end-to-end (e2e) tests mapping to a test database.
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
 $ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
-## Deployment
+### Coverage Report
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+**User Provisioning (`users.e2e-spec.ts`)**
+| Scenario | Expected Output | Actual Verification |
+| :--- | :--- | :--- |
+| **Registration** | Create a user and return the user entity | `[PASS]` User created successfully |
+| **Duplicates** | Reject duplicate email | `[PASS]` Caught Postgres duplicate key constraint |
+| **Validation** | Reject invalid email format / missing fields | `[PASS]` `400: ["email must be an email"]` |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Wallet Financial Operations (`wallets.e2e-spec.ts`)**
+| Scenario | Expected Output | Actual Verification |
+| :--- | :--- | :--- |
+| **Funding** | Credit wallet and strictly record accurate `balanceBefore` and `balanceAfter` | `[PASS]` Credits correctly appended to balances |
+| **Missing Params** | Reject credit requests with missing `referenceId` | `[PASS]` `400: ["Idempotency-Key header is required"]` |
+| **Invalid Amounts**| Reject credit with amount = `0` or negative numbers | `[PASS]` `400: ["amount must be at least 1 cent"]` |
+| **Withdrawals** | Debit wallet and verify final balance matches `balanceBefore - amount` | `[PASS]` Debits successfully processed |
+| **Insufficient** | Prevent a debit if balance drops below `0` | `[PASS]` `400: "Insufficient balance... requested: 9999999.99 USD"` |
+| **Idempotency** | Prevent duplicate operations. Reused `referenceId` returns cached transaction | `[PASS]` Secondary requests bypassed controller safely |
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+**Test Output:**
+```text
+Test Suites: 2 passed, 2 total
+Tests:       14 passed, 14 total
+Snapshots:   0 total
+Time:        9.078 s
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

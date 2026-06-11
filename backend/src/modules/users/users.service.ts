@@ -17,7 +17,10 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.userRepo.find({ order: { createdAt: 'DESC' } });
+    return this.userRepo.find({ 
+      relations: { wallets: true },
+      order: { createdAt: 'DESC' } 
+    });
   }
 
   async findById(id: string): Promise<User> {

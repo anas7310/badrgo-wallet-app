@@ -65,10 +65,11 @@ describe('Wallets (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post(`/wallets/${walletId}/credit`)
         .send({
-          amount: 10000, 
+          amount: 10000,
           referenceId: `credit-test-${Date.now()}`,
           description: 'Test credit',
         })
+        .set('Idempotency-Key', `credit-test-${Date.now()}`)
         .expect(201);
 
       expect(res.body).toMatchObject({
@@ -93,6 +94,7 @@ describe('Wallets (e2e)', () => {
       await request(app.getHttpServer())
         .post(`/wallets/${walletId}/credit`)
         .send({ amount: 0, referenceId: 'zero-amount-test' })
+        .set('Idempotency-Key', 'zero-amount-test')
         .expect(400);
     });
   });
@@ -105,15 +107,17 @@ describe('Wallets (e2e)', () => {
       const refCredit = `debit-setup-credit-${Date.now()}`;
       await request(app.getHttpServer())
         .post(`/wallets/${walletId}/credit`)
-        .send({ amount: 5000, referenceId: refCredit });
+        .send({ amount: 5000, referenceId: refCredit })
+        .set('Idempotency-Key', refCredit);
 
       const res = await request(app.getHttpServer())
         .post(`/wallets/${walletId}/debit`)
         .send({
-          amount: 2000, 
+          amount: 2000,
           referenceId: `debit-test-${Date.now()}`,
           description: 'Test debit',
         })
+        .set('Idempotency-Key', `debit-test-${Date.now()}`)
         .expect(201);
 
       expect(res.body).toMatchObject({
@@ -127,10 +131,8 @@ describe('Wallets (e2e)', () => {
     it('should reject debit when balance is insufficient', async () => {
       const res = await request(app.getHttpServer())
         .post(`/wallets/${walletId}/debit`)
-        .send({
-          amount: 999999999, 
-          referenceId: `insufficient-${Date.now()}`,
-        })
+        .send({ amount: 999999999, referenceId: `insufficient-${Date.now()}` })
+        .set('Idempotency-Key', `insufficient-${Date.now()}`)
         .expect(400);
 
       expect(res.body.message).toMatch(/insufficient balance/i);
@@ -140,6 +142,7 @@ describe('Wallets (e2e)', () => {
       await request(app.getHttpServer())
         .post(`/wallets/${walletId}/debit`)
         .send({ amount: -100, referenceId: 'negative-amount' })
+        .set('Idempotency-Key', 'negative-amount')
         .expect(400);
     });
   });
@@ -161,12 +164,14 @@ describe('Wallets (e2e)', () => {
       const first = await request(app.getHttpServer())
         .post(`/wallets/${walletId}/credit`)
         .send({ amount, referenceId })
+        .set('Idempotency-Key', referenceId)
         .expect(201);
 
       
       const second = await request(app.getHttpServer())
         .post(`/wallets/${walletId}/credit`)
         .send({ amount, referenceId })
+        .set('Idempotency-Key', referenceId)
         .expect(201);
 
       
@@ -193,11 +198,13 @@ describe('Wallets (e2e)', () => {
       const first = await request(app.getHttpServer())
         .post(`/wallets/${walletId}/debit`)
         .send({ amount, referenceId })
+        .set('Idempotency-Key', referenceId)
         .expect(201);
 
       const second = await request(app.getHttpServer())
         .post(`/wallets/${walletId}/debit`)
         .send({ amount, referenceId })
+        .set('Idempotency-Key', referenceId)
         .expect(201);
 
       expect(first.body.id).toBe(second.body.id);

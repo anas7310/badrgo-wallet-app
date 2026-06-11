@@ -34,17 +34,17 @@ export class Transaction {
   type: TransactionType;
 
   @Column({ type: 'bigint' })
-  amount: number; 
+  amount: number;
 
   @Column({ type: 'bigint' })
-  balanceBefore: number; 
+  balanceBefore: number;
 
   @Column({ type: 'bigint' })
-  balanceAfter: number; 
+  balanceAfter: number;
 
-  
-  
-  
+
+
+
   @Index({ unique: true })
   @Column()
   referenceId: string;
