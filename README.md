@@ -86,11 +86,14 @@ If I had more time, here are a few things I would add to help the app scale bett
 A fully interactive **Swagger UI** is available when the backend is running at `http://localhost:3000/api`.
 
 **Core Endpoints:**
-- `POST /users` - Onboard a new institutional user.
+- `POST /users` - Create a new user.
+- `GET /users` - Fetch a list of all users and their details.
 - `POST /wallets` - Provision a new wallet address linked to a user.
-- `GET /wallets/stats` - Fetch highly optimized aggregate system statistics.
+- `GET /wallets/:id` - Fetch details and current balance of a specific wallet.
 - `POST /wallets/:id/credit` - Inject funds (Idempotent).
 - `POST /wallets/:id/debit` - Withdraw funds (Idempotent + Insufficient Funds Guard).
+- `GET /wallets/:id/transactions` - Fetch the full transaction history for a specific wallet.
+- `GET /reports/daily-summary` - Fetch highly optimized aggregate daily statistics and transaction lists.
 
 > **Idempotency Note**: All financial operations require a unique `referenceId`. If the API receives a duplicate request due to network retries, it gracefully returns the original transaction rather than processing the money twice.
 
