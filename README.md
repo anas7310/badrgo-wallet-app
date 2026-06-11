@@ -78,6 +78,7 @@ If I had more time, here are a few things I would add to help the app scale bett
 1. **Use Redis for Idempotency**: Checking the database for every single request adds a lot of load. I'd move the idempotency check to Redis so we can block duplicate requests instantly in memory.
 2. **Database Partitioning**: Since the transactions table will just keep growing forever, querying it will eventually get slow. I would set up Postgres to partition the table by month so the database doesn't have to scan millions of old rows.
 3. **Read Replicas**: I'd split the database traffic. All the heavy reads (like fetching the daily reports) would go to a read-replica database, keeping the main master database totally free to just handle fast debit and credit locks.
+4. **Payment Gateway Integration**: I would integrate a third-party payment processor like **Stripe** or **PayPal**. This would allow us to handle real-world credit card validations, 3D Secure authentication, and automated webhooks for processing external deposits before crediting the internal wallet balances.
 
 ---
 
