@@ -151,9 +151,9 @@ npm run seed
 
 ## 🤖 AI Usage Disclosure
 
-> **AI Tooling Accounted for < 20% of Development**
+> **AI Tooling Accounted for Development**
 
-While AI tools were utilized to accelerate boilerplate generation (such as scaffolding NestJS modules, generating CSS gradients, and formatting `package.json` scripts), the core architecture, business logic, and database schemas were heavily manually architected.
+While AI tools were utilized to accelerate boilerplate generation (such as scaffolding NestJS modules, generating CSS gradients, and formatting `package.json` scripts, idempotency cahce querying), the core architecture, business logic, and database schemas were heavily manually architected.
 
 **Manually Designed Systems & Tradeoffs Chosen:**
 - **Pessimistic Locking & Financial Integrity**: AI defaults to simple `+=` updates. I manually enforced explicit TypeORM query runners utilizing `pessimistic_write` row-level locks and strict idempotency checks via unique constraints.
