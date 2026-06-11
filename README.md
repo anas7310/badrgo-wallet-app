@@ -70,6 +70,7 @@ npm run dev
 
 - **No Docker**: I wanted to include Docker, but because of some hardware constraints on my local machine and the tight 24-hour deadline, I skipped it. You can just run it normally using Node and Postgres.
 - **No Redis**: Normally I would use Redis for handling the idempotency cache, but I wanted to keep the local setup simple for the development phase. So instead, I handled the duplicate request checking directly inside PostgreSQL using a custom table.
+- **Mobile / LAN Testing**: To ensure the frontend is truly responsive and the APIs communicate correctly over a network, I hosted the backend securely on my local IP (`0.0.0.0`), configured **CORS** to accept traffic from my local network subnet, and exposed the Vite frontend (`--host`) to test the entire application end-to-end directly from my physical mobile device.
 
 ### 4. Future Scope
 
