@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { walletsApi } from '../../api/wallets.api';
-import { LayoutDashboard, Users, BarChart3, Wallet, Link, Landmark, User, HelpCircle, Plus } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Wallet, Link, User, HelpCircle, Plus } from 'lucide-react';
 import './Sidebar.css';
 
 const navItems = [

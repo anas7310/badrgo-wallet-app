@@ -57,7 +57,6 @@ function WalletBalanceText({ id, currency }: { id: string; currency: string }) {
 
 export function UsersPage() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
 
   const [showUserModal, setShowUserModal] = useState(false);

@@ -67,6 +67,19 @@ CREATE TABLE "transaction" (
     CONSTRAINT uq_transaction_reference UNIQUE ("referenceId")  -- prevents duplicate processing at DB level
 );
 
+-- ─── idempotency_record ───────────────────────────────────────────────────────
+CREATE TYPE idempotency_status_enum AS ENUM ('IN_PROGRESS', 'SUCCESS', 'FAILED');
+
+CREATE TABLE "idempotency_record" (
+    "idempotencyKey" VARCHAR PRIMARY KEY,
+    "status" idempotency_status_enum NOT NULL DEFAULT 'IN_PROGRESS',
+    "responseCode" INT,
+    "responseBody" JSONB,
+    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+
 
 -- =============================================================================
 -- PART 3: INDEXES
